@@ -12,5 +12,5 @@ func init() {
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Hello, the time is now ", time.Now())
+	fmt.Fprint(w, "Hello, the time is now ", time.Now())
 }
