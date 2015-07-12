@@ -1,6 +1,7 @@
 package steamapi
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -11,9 +12,24 @@ import (
 	"appengine/urlfetch"
 )
 
+//SteamAccount object containing an array of all returned Steam Accounts
+type SteamAccount struct {
+	Players []SteamAccountDetails
+}
+
+//SteamAccountDetails gives the details of the SteamAccount
+type SteamAccountDetails struct {
+	SteamID          string
+	CommunityBanned  bool
+	VACBanned        bool
+	NumberOfVACBans  int
+	DaysSinceLastBan int
+	NumberOfGameBans int
+	EconomyBan       string
+}
+
 func init() {
 	http.HandleFunc("/", root)
-	//http.HandleFunc("/sign", sign)
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
@@ -33,31 +49,76 @@ func root(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Steam API only allows 100 steamIds to be sent, group them up into a Map
+	groupedSteamIDArray := groupSteamIDs(steamIDArray)
+
+	//Google specific
 	c := appengine.NewContext(r)
 
-	results, err := makeSteamAPICall(&c, &steamIDArray, &key)
+	results, err := makeSteamAPICall(&c, groupedSteamIDArray, &key)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Fprint(w, string(results))
+	//going to assume there's no issue with return size - hope for gzip over the wire...
+	marshalled, err := json.Marshal(results)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprint(w, string(marshalled))
 
 }
 
-func makeSteamAPICall(c *appengine.Context, id *[]string, key *string) ([]byte, error) {
-	endpoint := "https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=" + *key + "&steamids="
-	endpoint += strings.Join(*id, ",")
+func groupSteamIDs(idList []string) map[int][]string {
+	i := 0
+	j := 0
 
-	client := urlfetch.Client(*c)
-	resp, err := client.Get(endpoint)
+	groupList := make(map[int][]string)
+	for i < len(idList) {
+		var arr []string
+		if i+100 > len(idList) {
+			arr = idList[i:len(idList)]
+		} else {
+			arr = idList[i : i+100]
+		}
+		groupList[j] = arr
 
-	if err != nil {
-		return nil, err
+		i += 100
+		j++
+	}
+	return groupList
+
+}
+
+func makeSteamAPICall(c *appengine.Context, groupedSteamIDs map[int][]string, key *string) ([]SteamAccount, error) {
+	mainEndpoint := "https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=" + *key + "&steamids="
+
+	var steamAccounts []SteamAccount
+	for _, v := range groupedSteamIDs {
+		endpoint := mainEndpoint + strings.Join(v, ",")
+
+		client := urlfetch.Client(*c)
+		resp, err := client.Get(endpoint)
+
+		if err != nil {
+			return nil, err
+		}
+		var m SteamAccount
+		result, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := json.Unmarshal(result, &m); err != nil {
+			return nil, err
+		}
+		steamAccounts = append(steamAccounts, m)
 	}
 
-	return ioutil.ReadAll(resp.Body)
+	return steamAccounts, nil
 }
 
 func readAPIKey() (string, error) {
