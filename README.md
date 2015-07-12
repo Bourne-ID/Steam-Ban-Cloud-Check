@@ -19,5 +19,7 @@ This is my first venture into Google App Cloud coding, and GO language in genera
 ##Future editions plans:
 
 v1.1: Use Datastore to cache common user searches (reduces stress of Steam API Key)
+
 v1.2: Anonymous Usage statistics on API calls (chrome extension opt-in tickbox)
+
 v2: (opt-in on chrome extension) Chrome User Watch List, automated monitoring and notification pushing to client
