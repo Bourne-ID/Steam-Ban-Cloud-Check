@@ -5,12 +5,12 @@ Created to enhance the user experience by removing the step to use their own API
 
 ##Input
 ```
-<url of service>?steamids=xxx,yyy,zzz
+post data: steamids=xxx,yyy,zzz
 ```
 ##Output
 JSON Example:
 ```
-[{"Players":[{"SteamID":"76561197962361621","CommunityBanned":false,"VACBanned":false,"NumberOfVACBans":0,"DaysSinceLastBan":0,"NumberOfGameBans":0,"EconomyBan":"none"},{"SteamID":"76561197960434622","CommunityBanned":false,"VACBanned":false,"NumberOfVACBans":0,"DaysSinceLastBan":0,"NumberOfGameBans":0,"EconomyBan":"none"}]}]
+[{"SteamID":"76561197962361621","CommunityBanned":false,"VACBanned":false,"NumberOfVACBans":0,"DaysSinceLastBan":0,"NumberOfGameBans":0,"EconomyBan":"none"},{"SteamID":"76561197960434622","CommunityBanned":false,"VACBanned":false,"NumberOfVACBans":0,"DaysSinceLastBan":0,"NumberOfGameBans":0,"EconomyBan":"none"}]
 ```
 
 ##Personal Note
