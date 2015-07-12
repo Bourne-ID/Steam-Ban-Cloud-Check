@@ -93,10 +93,10 @@ func groupSteamIDs(idList []string) map[int][]string {
 
 }
 
-func makeSteamAPICall(c *appengine.Context, groupedSteamIDs map[int][]string, key *string) ([]SteamAccount, error) {
+func makeSteamAPICall(c *appengine.Context, groupedSteamIDs map[int][]string, key *string) ([]SteamAccountDetails, error) {
 	mainEndpoint := "https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=" + *key + "&steamids="
 
-	var steamAccounts []SteamAccount
+	var steamAccounts []SteamAccountDetails
 	for _, v := range groupedSteamIDs {
 		endpoint := mainEndpoint + strings.Join(v, ",")
 
@@ -115,7 +115,7 @@ func makeSteamAPICall(c *appengine.Context, groupedSteamIDs map[int][]string, ke
 		if err := json.Unmarshal(result, &m); err != nil {
 			return nil, err
 		}
-		steamAccounts = append(steamAccounts, m)
+		steamAccounts = append(steamAccounts, m.Players...)
 	}
 
 	return steamAccounts, nil
