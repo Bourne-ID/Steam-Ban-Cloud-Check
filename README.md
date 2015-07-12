@@ -14,4 +14,10 @@ JSON Example:
 ```
 
 ##Personal Note
-This is my first venture into Google App Cloud coding, and GO language in general so I suspect there are better ways of doing many things here, along with ways to make the code better. As such, you probably shouldn't use this as an example of best practices for GO Code. 
+This is my first venture into Google App Cloud coding, and GO language in general so I suspect there are better ways of doing many things here, along with ways to make the code better. As such, you probably shouldn't use this as an example of best practices for GO Code.
+
+##Future editions plans:
+
+v1.1: Use Datastore to cache common user searches (reduces stress of Steam API Key)
+v1.2: Anonymous Usage statistics on API calls (chrome extension opt-in tickbox)
+v2: (opt-in on chrome extension) Chrome User Watch List, automated monitoring and notification pushing to client
