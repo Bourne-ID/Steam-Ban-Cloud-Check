@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"appengine"
 	"appengine/urlfetch"
@@ -26,6 +27,8 @@ type SteamAccountDetails struct {
 	DaysSinceLastBan int
 	NumberOfGameBans int
 	EconomyBan       string
+	LastUpdated      time.Time
+	Updated          bool
 }
 
 func init() {
@@ -49,6 +52,9 @@ func root(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//check if we already have some of there entries in store and is recent
+	//maybe later
+
 	//Steam API only allows 100 steamIds to be sent, group them up into a Map
 	groupedSteamIDArray := groupSteamIDs(steamIDArray)
 
@@ -62,6 +68,11 @@ func root(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//save entries if they have been updated
+	if err := SaveAllToStore(c, results); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	//going to assume there's no issue with return size - hope for gzip over the wire...
 	marshalled, err := json.Marshal(results)
 	if err != nil {
@@ -106,6 +117,7 @@ func makeSteamAPICall(c *appengine.Context, groupedSteamIDs map[int][]string, ke
 		if err != nil {
 			return nil, err
 		}
+
 		var m SteamAccount
 		result, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
