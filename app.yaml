@@ -1,5 +1,5 @@
 application: thermal-scene-99714
-version: 1
+version: 1.1
 runtime: go
 api_version: go1
 

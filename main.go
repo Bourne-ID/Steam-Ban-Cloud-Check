@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"appengine"
 	"appengine/urlfetch"
@@ -26,6 +27,8 @@ type SteamAccountDetails struct {
 	DaysSinceLastBan int
 	NumberOfGameBans int
 	EconomyBan       string
+	LastUpdated      time.Time
+	Updated          bool
 }
 
 func init() {
@@ -49,11 +52,19 @@ func root(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Steam API only allows 100 steamIds to be sent, group them up into a Map
-	groupedSteamIDArray := groupSteamIDs(steamIDArray)
-
 	//Google specific
 	c := appengine.NewContext(r)
+
+	//check if we already have some of there entries in store and is recent
+	//uncachedIDs, obtainedRecords, err := callMemcache(&c, steamIDArray)
+	foundAccounts, missingIDs, err1 := callMemcache(&c, steamIDArray)
+	if err1 != nil {
+		http.Error(w, err1.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	//Steam API only allows 100 steamIds to be sent, group them up into a Map
+	groupedSteamIDArray := groupSteamIDs(missingIDs)
 
 	results, err := makeSteamAPICall(&c, groupedSteamIDArray, &key)
 
@@ -62,6 +73,13 @@ func root(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	results = append(results, foundAccounts...)
+
+	//save entries if they have been updated
+	if err := SaveAllToStore(c, results); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	//going to assume there's no issue with return size - hope for gzip over the wire...
 	marshalled, err := json.Marshal(results)
 	if err != nil {
@@ -70,6 +88,10 @@ func root(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprint(w, string(marshalled))
 
+}
+
+func callMemcache(c *appengine.Context, idList []string) ([]SteamAccountDetails, []string, error) {
+	return RetrieveMultiFromStore(c, idList)
 }
 
 func groupSteamIDs(idList []string) map[int][]string {
@@ -106,6 +128,7 @@ func makeSteamAPICall(c *appengine.Context, groupedSteamIDs map[int][]string, ke
 		if err != nil {
 			return nil, err
 		}
+
 		var m SteamAccount
 		result, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
