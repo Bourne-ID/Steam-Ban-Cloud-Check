@@ -33,7 +33,7 @@ func init() {
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
-	steamIdsString := r.URL.Query().Get("steamids")
+	steamIdsString := r.FormValue("steamids")
 	steamIDArray := strings.Split(steamIdsString, ",")
 
 	//do we have steam keys?
