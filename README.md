@@ -23,3 +23,23 @@ v2: Use Datastore to cache common user searches (reduces stress of Steam API Key
 v3: Anonymous Usage statistics on API calls (chrome extension opt-in tickbox)
 
 v4: (opt-in on chrome extension) Chrome User Watch List, automated monitoring and notification pushing to client
+
+##Privacy Policy
+Data submitted to the server will be checked against the application's Memcache to reduce the number of calls made to the Steam API. Data held includes:
+* Submitted Steam ID (and henceforth assumed to be relevant to stored SteamID:)
+* Community Banned
+* VAC Banned
+* Number of VAC Bans
+* Days Since Last Banned
+* Number of Game Bans
+* Economy Ban
+
+Data cache items are expired frequently to prevent stale results.
+
+Additional web logging information is also stored for debugging purposes only:
+* IP Address where the web call was made from
+* HTTP Headers of web call
+
+**Your Steam ID or IP and the SteamIDs sent in your call are never stored together**
+
+Google App engine is located in Europe, but data may be replicated to other datacentres, and is outside of our control
