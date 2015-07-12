@@ -1,7 +1,7 @@
 # Steam-Ban-Cloud-Check
 Checks for steam bans using Steam API and Google App Cloud
 
-Created to enhance the user experience by removing the step to use their own API key (which can be problematic if they do not own a domain name). As per the Steam API Terms of Use, API keys must be kept confidential, hence cannot be embedded into a Chome Extension, and therefore the creation of this cloud service.
+Created to enhance the user experience by removing the step to use their own API key (which can be problematic if they do not own a domain name). As per the Steam API Terms of Use, API keys must be kept confidential, hence cannot be embedded into a Chrome Extension, and therefore the creation of this cloud service.
 
 ##Input
 ```
